@@ -52,7 +52,7 @@ class PdfTool:
         for file in filenames:
             self.listbox.insert(END, file.split("/")[-1])
             self.paths.append(file)
-        if self.listbox.size() > 1 and self.button_delete["state"] == DISABLED:
+        if self.listbox.size() > 0 and self.button_delete["state"] == DISABLED:
             self.switch(self.button_delete)
             self.switch(self.button_delete_all)
 
