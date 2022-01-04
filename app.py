@@ -1,7 +1,8 @@
 import tkinter as tk
-from tkinter import ttk, Button, RIGHT, END, Listbox, messagebox, Label, NORMAL, DISABLED, filedialog
+from tkinter import ttk, Button, RIGHT, END, Listbox, messagebox, Label, NORMAL, DISABLED
 import tkinter.filedialog as fd
 import PyPDF2
+import pikepdf
 import os
 
 
@@ -63,8 +64,19 @@ class PdfTool:
             messagebox.showinfo("ERROR", "Please choose 2 or more pdf files", icon='error')
         else:
             for _pdf in self.paths:
-                merger.append(PyPDF2.PdfFileReader(_pdf, 'rb'))
-            folder_selected = filedialog.askdirectory()
+                pdf = PyPDF2.PdfFileReader(_pdf, 'rb')
+                if not pdf.isEncrypted:
+                    merger.append(pdf)
+                else:
+                    # handling encrypted pdf without passwords
+                    temp = pikepdf.open(_pdf)
+                    temp_path = _pdf + "temp"
+                    temp.save(temp_path)
+                    pdf = PyPDF2.PdfFileReader(temp_path, 'rb')
+                    merger.append(pdf)
+                    os.remove(temp_path)
+            folder_selected = fd.askdirectory()
+            # TODO : add output file name input
             merger.write(os.path.join(folder_selected, "output.pdf"))
             messagebox.showinfo("RESULT", "pdfs merged successfully", icon='info')
 
