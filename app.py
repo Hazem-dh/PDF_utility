@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, Button, RIGHT, END, Listbox, messagebox, Label, NORMAL, DISABLED
+from tkinter import ttk, Button, RIGHT, END, Listbox, messagebox, Label, NORMAL, DISABLED, LEFT, CENTER
 import tkinter.filedialog as fd
 import PyPDF2
 import pikepdf
@@ -15,10 +15,10 @@ class PdfTool:
         root.iconbitmap("assets/PDF.ico")
         self.tab_control = ttk.Notebook(self.master)
         self.paths = []
+
         # creating tabs
         self.tab_merge = ttk.Frame(self.tab_control)
-        self.label = Label(self.tab_merge, text="Choose pdf files you want to merge")
-        self.label.pack()
+        Label(self.tab_merge, text="Choose pdf files you want to merge").pack()
 
         self.tab_split = ttk.Frame(self.tab_control)
         self.tab_extract = ttk.Frame(self.tab_control)
@@ -28,6 +28,11 @@ class PdfTool:
         self.tab_control.pack(expand=1, fill="both")
         self.listbox = Listbox(self.tab_merge, selectmode='multiple')
         self.listbox.pack(expand=1, fill="both")
+        self.label = tk.Label(self.tab_merge, text="Output file name")
+        self.label.pack(expand=1, fill="both")
+        self.entry = tk.Entry(self.tab_merge, justify=CENTER)
+        self.entry["state"] = DISABLED
+        self.entry.pack(expand=1, fill="both")
 
         self.button_add = Button(self.tab_merge, text="select files", width=10, height=2, command=self.upload_action)
         self.button_merge = Button(self.tab_merge, text="merge files", width=10, height=2, command=self.merge_files)
@@ -35,17 +40,17 @@ class PdfTool:
         self.button_delete_all = Button(self.tab_merge, text="delete_all", width=10, height=2, command=self.delete_all)
         self.button_delete["state"] = DISABLED
         self.button_delete_all["state"] = DISABLED
-        self.button_delete.pack(side=RIGHT)
-        self.button_delete_all.pack(side=RIGHT)
-        self.button_add.pack(side=RIGHT)
-        self.button_merge.pack(side=RIGHT)
+        self.button_delete.pack(expand=1, fill="both", side=RIGHT)
+        self.button_delete_all.pack(expand=1, fill="both", side=RIGHT)
+        self.button_add.pack(expand=1, fill="both", side=LEFT)
+        self.button_merge.pack(expand=1, fill="both", side=LEFT)
 
     @staticmethod
-    def switch(button):
-        if button["state"] == NORMAL:
-            button["state"] = DISABLED
+    def switch(component):
+        if component["state"] == NORMAL:
+            component["state"] = DISABLED
         else:
-            button["state"] = NORMAL
+            component["state"] = NORMAL
 
     def upload_action(self, event=None):
         filenames = fd.askopenfilenames(filetypes=[("Text files", "*.pdf")], title='Choose pdfs to merge')
@@ -56,10 +61,15 @@ class PdfTool:
         if self.listbox.size() > 0 and self.button_delete["state"] == DISABLED:
             self.switch(self.button_delete)
             self.switch(self.button_delete_all)
+        if self.listbox.size() > 1 and self.entry["state"] == DISABLED:
+            self.switch(self.entry)
 
     def merge_files(self):
         merger = PyPDF2.PdfFileMerger()
-
+        file_name = self.entry.get()
+        if len(file_name) == 0:
+            messagebox.showinfo("ERROR", "Please entre the name of the output file", icon='error')
+            return
         if len(self.paths) < 2:
             messagebox.showinfo("ERROR", "Please choose 2 or more pdf files", icon='error')
         else:
@@ -76,8 +86,9 @@ class PdfTool:
                     merger.append(pdf)
                     os.remove(temp_path)
             folder_selected = fd.askdirectory()
-            # TODO : add output file name input
-            merger.write(os.path.join(folder_selected, "output.pdf"))
+            merger.write(os.path.join(folder_selected, file_name + ".pdf"))
+            self.entry.delete(0, last=END)
+            self.switch(self.entry)
             messagebox.showinfo("RESULT", "pdfs merged successfully", icon='info')
 
     def delete(self):
