@@ -15,6 +15,7 @@ class PdfTool:
         self.master.minsize(400, 300)
         root.iconbitmap("assets/PDF.ico")
         self.tab_control = ttk.Notebook(self.master)
+        self.tab_control.bind("<<NotebookTabChanged>>", self.handle_tab_changed)
         self.paths = []
 
         # creating tabs
@@ -47,36 +48,47 @@ class PdfTool:
         self.button_add.pack(expand=1, fill="both", side=LEFT)
         self.button_merge.pack(expand=1, fill="both", side=LEFT)
 
-        var = IntVar(value=1)
+        self.button_add = Button(self.tab_extract, text="select file", command=self.upload_action).grid(row=0, column=1)
+        self.file = Label(self.tab_extract, text="").grid(row=0, column=2, columnspan=2)
+
+        self.var = IntVar(value=1)
+        self.one = Radiobutton(self.tab_extract, variable=self.var, value=1,
+                               command=self.naccheck, text="extract 1 page")
+        self.one.grid(row=1, column=1, sticky="w")
         self.p_number = Entry(self.tab_extract, validate="key",
                               validatecommand=(self.tab_extract.register(self.only_numbers), '%S'), justify=CENTER)
-        self.p_number.grid(row=0, column=2)
-        self.one = Radiobutton(self.tab_extract, variable=var, value=1,
-                               command=lambda e=self.p_number, text="extract 1 page", v=var: self.naccheck(e, v))
-        self.one.grid(row=0, column=1, sticky="w")
+        self.p_number.grid(row=1, column=2)
+
+        self.two = Radiobutton(self.tab_extract, variable=self.var, value=2,
+                               command=self.naccheck, text="extract a range of pages", )
+        self.two.grid(row=2, column=1)
         self.start_number = Entry(self.tab_extract, validate="key",
                                   validatecommand=(self.tab_extract.register(self.only_numbers), '%S'), justify=CENTER)
-        self.start_number.grid(row=1, column=2)
-        self.two = Radiobutton(self.tab_extract, variable=var, value=2,
-                               command=lambda e=self.start_number, text="extract a range of pages",
-                                              v=var: self.naccheck(e, v))
-        self.two.grid(row=1, column=1)
-
+        self.start_number.grid(row=2, column=2)
+        self.start_number["state"] = DISABLED
         self.end_number = Entry(self.tab_extract, validate="key",
                                 validatecommand=(self.tab_extract.register(self.only_numbers), '%S'), justify=CENTER)
-        self.end_number.grid(row=1, column=3)
+        self.end_number.grid(row=2, column=3)
+        self.end_number["state"] = DISABLED
 
     # function to validate mark entry
     @staticmethod
     def only_numbers(char):
         return char.isdigit()
 
-    @staticmethod
-    def naccheck(entry, var3):
-        if var3.get() != 2:
-            entry.configure(state='disabled')
+    def naccheck(self):
+        if self.var.get() == 2:
+            self.p_number.delete(0, 'end')
+            self.switch(self.p_number)
+            self.switch(self.start_number)
+            self.switch(self.end_number)
+
         else:
-            entry.configure(state='normal')
+            self.start_number.delete(0, END)
+            self.end_number.delete(0, END)
+            self.switch(self.p_number)
+            self.switch(self.start_number)
+            self.switch(self.end_number)
 
     @staticmethod
     def switch(component):
@@ -85,17 +97,25 @@ class PdfTool:
         else:
             component["state"] = NORMAL
 
+    def handle_tab_changed(self, event):
+        self.paths = []
+
     def upload_action(self):
+        current_tab = self.tab_control.index(self.tab_control.select())
         filenames = fd.askopenfilenames(filetypes=[("Text files", "*.pdf")], title='Choose pdfs to merge')
         for file in filenames:
-            self.listbox.insert(END, file.split("/")[-1])
+            if current_tab == 0:
+                self.listbox.insert(END, file.split("/")[-1])
+            else:
+                self.entry.config(text=file.split("/")[-1])
             self.paths.append(file)
-        if self.listbox.size() > 0 and self.button_delete["state"] == DISABLED:
-            self.switch(self.button_delete)
-            self.switch(self.button_delete_all)
-        if self.listbox.size() > 1 and self.entry["state"] == DISABLED:
-            self.switch(self.entry)
-            self.switch(self.button_merge)
+        if current_tab == 0:
+            if self.listbox.size() > 0 and self.button_delete["state"] == DISABLED:
+                self.switch(self.button_delete)
+                self.switch(self.button_delete_all)
+            if self.listbox.size() > 1 and self.entry["state"] == DISABLED:
+                self.switch(self.entry)
+                self.switch(self.button_merge)
 
     def merge_files(self):
         merger = PyPDF2.PdfFileMerger()
