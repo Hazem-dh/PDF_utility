@@ -4,6 +4,7 @@ from tkinter import ttk, Button, RIGHT, END, Listbox, messagebox, Radiobutton, L
 import tkinter.filedialog as fd
 import PyPDF2
 import pikepdf
+from pikepdf import Pdf
 import os
 
 
@@ -168,7 +169,30 @@ class PdfTool:
         messagebox.showinfo("RESULT", "pdfs merged successfully", icon='info')
 
     def extract(self):
-        pass
+        pdf = Pdf.open(self.path)
+        if self.var.get() == 1:
+            page_num = int(self.p_number.get())
+            if page_num < 1 or page_num > len(pdf.pages):
+                messagebox.showinfo("ERROR", "invalid page number", icon='error')
+                return
+            else:
+                output = Pdf.new()
+                output.pages.append(pdf.pages[page_num - 1])
+                folder_selected = fd.askdirectory()
+                output.save(os.path.join(folder_selected, self.output_extract.get() + ".pdf"))
+                messagebox.showinfo("INFO", "page extracted successfully", icon='info')
+
+        else:
+            page_num_start = self.start_number.get()
+            page_num_end = self.end_number.get()
+            if page_num_end < page_num_start:
+                messagebox.showinfo("ERROR", "invalid page numbers", icon='error')
+
+        # check wich tab selected
+        # onlly one check number is in range
+        # extract page
+        # check b bigger than a and two number are in range
+        # extract range range
 
     def delete(self):
         current_tab = self.tab_control.index(self.tab_control.select())
