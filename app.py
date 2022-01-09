@@ -170,8 +170,15 @@ class PdfTool:
 
     def extract(self):
         pdf = Pdf.open(self.path)
+        if self.output_extract.get() == "":
+            messagebox.showinfo("ERROR", "Please entre the name of the output file", icon='error')
+            return
         if self.var.get() == 1:
-            page_num = int(self.p_number.get())
+            try:
+                page_num = int(self.p_number.get())
+            except ValueError:
+                messagebox.showinfo("ERROR", "please enter page number", icon='error')
+                return
             if page_num < 1 or page_num > len(pdf.pages):
                 messagebox.showinfo("ERROR", "invalid page number", icon='error')
                 return
@@ -181,18 +188,22 @@ class PdfTool:
                 folder_selected = fd.askdirectory()
                 output.save(os.path.join(folder_selected, self.output_extract.get() + ".pdf"))
                 messagebox.showinfo("INFO", "page extracted successfully", icon='info')
-
         else:
-            page_num_start = self.start_number.get()
-            page_num_end = self.end_number.get()
-            if page_num_end < page_num_start:
+            try:
+                page_num_start = int(self.start_number.get())
+                page_num_end = int(self.end_number.get())
+            except ValueError:
+                messagebox.showinfo("ERROR", "please enter page number", icon='error')
+            if page_num_end < page_num_start or page_num_start < 1 or page_num_end > len(pdf.pages):
                 messagebox.showinfo("ERROR", "invalid page numbers", icon='error')
-
-        # check wich tab selected
-        # onlly one check number is in range
-        # extract page
-        # check b bigger than a and two number are in range
-        # extract range range
+            output = Pdf.new()
+            for i in range(page_num_end - page_num_start + 1):
+                output.pages.append(pdf.pages[i])
+            folder_selected = fd.askdirectory()
+            print(folder_selected)
+            print("folder_selected")
+            output.save(os.path.join(folder_selected, self.output_extract.get() + ".pdf"))
+            messagebox.showinfo("INFO", "page extracted successfully", icon='info')
 
     def delete(self):
         current_tab = self.tab_control.index(self.tab_control.select())
