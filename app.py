@@ -2,8 +2,6 @@ import tkinter as tk
 from tkinter import ttk, Button, RIGHT, END, Listbox, messagebox, Radiobutton, Label, NORMAL, DISABLED, LEFT, CENTER, \
     Entry, IntVar
 import tkinter.filedialog as fd
-import PyPDF2
-import pikepdf
 from pikepdf import Pdf
 import os
 
@@ -142,25 +140,16 @@ class PdfTool:
                 self.switch(self.button_merge)
 
     def merge_files(self):
-        merger = PyPDF2.PdfFileMerger()
         file_name = self.output_merge.get()
         if len(file_name) == 0:
             messagebox.showinfo("ERROR", "Please entre the name of the output file", icon='error')
             return
+        output = Pdf.new()
         for _pdf in self.paths:
-            pdf = PyPDF2.PdfFileReader(_pdf, 'rb')
-            if not pdf.isEncrypted:
-                merger.append(pdf)
-            else:
-                # handling encrypted pdf without passwords
-                temp = pikepdf.open(_pdf)
-                temp_path = _pdf + "temp"
-                temp.save(temp_path)
-                pdf = PyPDF2.PdfFileReader(temp_path, 'rb')
-                merger.append(pdf)
-                os.remove(temp_path)
+            pdf = Pdf.open(_pdf)
+            output.pages.extend(pdf.pages)
         folder_selected = fd.askdirectory()
-        merger.write(os.path.join(folder_selected, file_name + ".pdf"))
+        output.save(os.path.join(folder_selected, file_name + ".pdf"))
         self.output_merge.delete(0, last=END)
         self.switch(self.output_merge)
         self.switch(self.button_merge)
