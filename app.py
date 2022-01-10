@@ -58,13 +58,13 @@ class PdfTool:
         self.file.grid(row=1, column=2, columnspan=2)
         self.var = IntVar(value=1)
         self.one = Radiobutton(self.tab_extract, variable=self.var, value=1,
-                               command=self.naccheck, text="extract 1 page")
+                               command=self.intcheck, text="extract 1 page")
         self.one.grid(row=2, column=1, sticky="w")
         self.p_number = Entry(self.tab_extract, validate="key",
                               validatecommand=(self.tab_extract.register(self.only_numbers), '%S'), justify=CENTER)
         self.p_number.grid(row=2, column=2)
         self.two = Radiobutton(self.tab_extract, variable=self.var, value=2,
-                               command=self.naccheck, text="extract a range of pages", )
+                               command=self.intcheck, text="extract a range of pages", )
         self.two.grid(row=3, column=1)
         self.start_number = Entry(self.tab_extract, validate="key",
                                   validatecommand=(self.tab_extract.register(self.only_numbers), '%S'), justify=CENTER)
@@ -98,7 +98,7 @@ class PdfTool:
         else:
             component["state"] = NORMAL
 
-    def naccheck(self):
+    def intcheck(self):
         if self.var.get() == 2:
             self.p_number.delete(0, 'end')
             self.switch(self.p_number)
@@ -119,6 +119,7 @@ class PdfTool:
         if current_tab != 0 and len(filenames) > 1:  # check if user selected more than one file
             messagebox.showinfo("ERROR", "Please select only one file", icon='error')
             return
+
         for file in filenames:
             if current_tab == 0:
                 self.listbox.insert(END, file.split("/")[-1])
@@ -151,9 +152,7 @@ class PdfTool:
         for _pdf in self.paths:
             pdf = Pdf.open(_pdf)
             output.pages.extend(pdf.pages)
-
         output.save(os.path.join(folder_selected, file_name + ".pdf"))
-
         self.output_merge.delete(0, last=END)
         self.switch(self.output_merge)
         self.switch(self.button_merge)
@@ -185,7 +184,6 @@ class PdfTool:
                 self.output_extract.delete(0, last=END)
                 self.p_number.delete(0, last=END)
                 messagebox.showinfo("INFO", "page extracted successfully", icon='info')
-
         else:
             try:
                 page_num_start = int(self.start_number.get())
@@ -208,7 +206,6 @@ class PdfTool:
 
     def delete(self):
         current_tab = self.tab_control.index(self.tab_control.select())
-
         if current_tab == 0:
             selection = self.listbox.curselection()
             for index in selection[::-1]:
