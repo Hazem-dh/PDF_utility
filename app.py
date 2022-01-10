@@ -144,12 +144,16 @@ class PdfTool:
         if len(file_name) == 0:
             messagebox.showinfo("ERROR", "Please entre the name of the output file", icon='error')
             return
+        folder_selected = fd.askdirectory()
+        if folder_selected == "":
+            return
         output = Pdf.new()
         for _pdf in self.paths:
             pdf = Pdf.open(_pdf)
             output.pages.extend(pdf.pages)
-        folder_selected = fd.askdirectory()
+
         output.save(os.path.join(folder_selected, file_name + ".pdf"))
+
         self.output_merge.delete(0, last=END)
         self.switch(self.output_merge)
         self.switch(self.button_merge)
@@ -172,11 +176,16 @@ class PdfTool:
                 messagebox.showinfo("ERROR", "invalid page number", icon='error')
                 return
             else:
+                folder_selected = fd.askdirectory()
+                if folder_selected == "":
+                    return
                 output = Pdf.new()
                 output.pages.append(pdf.pages[page_num - 1])
-                folder_selected = fd.askdirectory()
                 output.save(os.path.join(folder_selected, self.output_extract.get() + ".pdf"))
+                self.output_extract.delete(0, last=END)
+                self.p_number.delete(0, last=END)
                 messagebox.showinfo("INFO", "page extracted successfully", icon='info')
+
         else:
             try:
                 page_num_start = int(self.start_number.get())
@@ -185,13 +194,16 @@ class PdfTool:
                 messagebox.showinfo("ERROR", "please enter page number", icon='error')
             if page_num_end < page_num_start or page_num_start < 1 or page_num_end > len(pdf.pages):
                 messagebox.showinfo("ERROR", "invalid page numbers", icon='error')
+            folder_selected = fd.askdirectory()
+            if folder_selected == "":
+                return
             output = Pdf.new()
             for i in range(page_num_end - page_num_start + 1):
                 output.pages.append(pdf.pages[i])
-            folder_selected = fd.askdirectory()
-            print(folder_selected)
-            print("folder_selected")
             output.save(os.path.join(folder_selected, self.output_extract.get() + ".pdf"))
+            self.output_extract.delete(0, last=END)
+            self.start_number.delete(0, last=END)
+            self.end_number.delete(0, last=END)
             messagebox.showinfo("INFO", "page extracted successfully", icon='info')
 
     def delete(self):
