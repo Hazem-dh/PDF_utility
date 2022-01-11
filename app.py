@@ -2,8 +2,7 @@ import tkinter as tk
 from tkinter import ttk, Button, RIGHT, END, Listbox, messagebox, Radiobutton, Label, NORMAL, DISABLED, LEFT, CENTER, \
     Entry, IntVar
 import tkinter.filedialog as fd
-from pikepdf import Pdf
-import os
+from utils import merge_pdfs, get_num_pages, extract_pages_from_pdf, extract_page_from_pdf
 
 
 class PdfTool:
@@ -148,11 +147,7 @@ class PdfTool:
         folder_selected = fd.askdirectory()
         if folder_selected == "":
             return
-        output = Pdf.new()
-        for _pdf in self.paths:
-            pdf = Pdf.open(_pdf)
-            output.pages.extend(pdf.pages)
-        output.save(os.path.join(folder_selected, file_name + ".pdf"))
+        merge_pdfs(self.paths, folder_selected, file_name)
         self.output_merge.delete(0, last=END)
         self.switch(self.output_merge)
         self.switch(self.button_merge)
@@ -161,7 +156,7 @@ class PdfTool:
         messagebox.showinfo("RESULT", "pdfs merged successfully", icon='info')
 
     def extract(self):
-        pdf = Pdf.open(self.path)
+        num_pages = get_num_pages(self.path)
         if self.output_extract.get() == "":
             messagebox.showinfo("ERROR", "Please entre the name of the output file", icon='error')
             return
@@ -171,16 +166,14 @@ class PdfTool:
             except ValueError:
                 messagebox.showinfo("ERROR", "please enter page number", icon='error')
                 return
-            if page_num < 1 or page_num > len(pdf.pages):
+            if page_num < 1 or page_num > num_pages:
                 messagebox.showinfo("ERROR", "invalid page number", icon='error')
                 return
             else:
                 folder_selected = fd.askdirectory()
                 if folder_selected == "":
                     return
-                output = Pdf.new()
-                output.pages.append(pdf.pages[page_num - 1])
-                output.save(os.path.join(folder_selected, self.output_extract.get() + ".pdf"))
+                extract_page_from_pdf(self.path, page_num, folder_selected, self.output_extract.get())
                 self.output_extract.delete(0, last=END)
                 self.p_number.delete(0, last=END)
                 messagebox.showinfo("INFO", "page extracted successfully", icon='info')
@@ -190,15 +183,12 @@ class PdfTool:
                 page_num_end = int(self.end_number.get())
             except ValueError:
                 messagebox.showinfo("ERROR", "please enter page number", icon='error')
-            if page_num_end < page_num_start or page_num_start < 1 or page_num_end > len(pdf.pages):
+            if page_num_end < page_num_start or page_num_start < 1 or page_num_end > num_pages:
                 messagebox.showinfo("ERROR", "invalid page numbers", icon='error')
             folder_selected = fd.askdirectory()
             if folder_selected == "":
                 return
-            output = Pdf.new()
-            for i in range(page_num_end - page_num_start + 1):
-                output.pages.append(pdf.pages[i])
-            output.save(os.path.join(folder_selected, self.output_extract.get() + ".pdf"))
+            extract_pages_from_pdf(self.path, page_num_start, page_num_end, folder_selected, self.output_extract.get())
             self.output_extract.delete(0, last=END)
             self.start_number.delete(0, last=END)
             self.end_number.delete(0, last=END)
