@@ -55,13 +55,13 @@ class PdfTool:
         self.file.grid(row=1, column=2, columnspan=2)
         self.var = IntVar(value=1)
         self.one = Radiobutton(self.tab_extract, variable=self.var, value=1,
-                               command=self.intcheck, text="extract 1 page")
+                               command=self.radio_button_manager, text="extract 1 page")
         self.one.grid(row=2, column=1, sticky="w")
         self.p_number = Entry(self.tab_extract, validate="key",
                               validatecommand=(self.tab_extract.register(self.only_numbers), '%S'), justify=CENTER)
         self.p_number.grid(row=2, column=2)
         self.two = Radiobutton(self.tab_extract, variable=self.var, value=2,
-                               command=self.intcheck, text="extract a range of pages", )
+                               command=self.radio_button_manager, text="extract a range of pages", )
         self.two.grid(row=3, column=1)
         self.start_number = Entry(self.tab_extract, validate="key",
                                   validatecommand=(self.tab_extract.register(self.only_numbers), '%S'), justify=CENTER)
@@ -95,19 +95,19 @@ class PdfTool:
         else:
             component["state"] = NORMAL
 
-    def intcheck(self):
+    def radio_button_manager(self):
         if self.var.get() == 1:
             self.start_number.delete(0, END)
             self.end_number.delete(0, END)
-            self.switch(self.p_number)
-            self.switch(self.start_number)
-            self.switch(self.end_number)
+            self.p_number["state"] = NORMAL
+            self.start_number["state"] = DISABLED
+            self.end_number["state"] = DISABLED
 
         if self.var.get() == 2:
             self.p_number.delete(0, 'end')
-            self.switch(self.p_number)
-            self.switch(self.start_number)
-            self.switch(self.end_number)
+            self.p_number["state"] = DISABLED
+            self.start_number["state"] = NORMAL
+            self.end_number["state"] = NORMAL
 
     def upload_action(self):
         current_tab = self.tab_control.index(self.tab_control.select())
@@ -158,7 +158,7 @@ class PdfTool:
     def extract(self):
         num_pages = get_num_pages(self.path)
         if self.output_extract.get() == "":
-            messagebox.showinfo("ERROR", "Please entre the name of the output file", icon='error')
+            messagebox.showinfo("ERROR", "Please enter the name of the output file", icon='error')
             return
         if self.var.get() == 1:
             try:
@@ -192,6 +192,7 @@ class PdfTool:
             self.output_extract.delete(0, last=END)
             self.start_number.delete(0, last=END)
             self.end_number.delete(0, last=END)
+            self.switch(self.output_extract)
             messagebox.showinfo("INFO", "page extracted successfully", icon='info')
 
     def delete(self):
@@ -223,8 +224,8 @@ class PdfTool:
         self.switch(self.button_delete_merge)
         self.switch(self.button_delete_all)
         self.output_merge.delete(0, last=END)
-        self.switch(self.output_merge)
-        self.switch(self.button_merge)
+        self.output_merge["state"] = DISABLED
+        self.button_merge["state"] = DISABLED
 
 
 if __name__ == '__main__':
