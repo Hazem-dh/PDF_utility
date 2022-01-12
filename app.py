@@ -19,10 +19,8 @@ class PdfTool:
         # creating tabs
         self.tab_merge = ttk.Frame(self.tab_control)
         Label(self.tab_merge, text="Choose pdf file you want to merge").pack()
-        self.tab_split = ttk.Frame(self.tab_control)
         self.tab_extract = ttk.Frame(self.tab_control)
         self.tab_control.add(self.tab_merge, text='merge')
-        self.tab_control.add(self.tab_split, text='split')
         self.tab_control.add(self.tab_extract, text='extract')
         self.tab_control.pack(expand=1, fill="both")
 
@@ -98,15 +96,15 @@ class PdfTool:
             component["state"] = NORMAL
 
     def intcheck(self):
-        if self.var.get() == 2:
-            self.p_number.delete(0, 'end')
+        if self.var.get() == 1:
+            self.start_number.delete(0, END)
+            self.end_number.delete(0, END)
             self.switch(self.p_number)
             self.switch(self.start_number)
             self.switch(self.end_number)
 
-        else:
-            self.start_number.delete(0, END)
-            self.end_number.delete(0, END)
+        if self.var.get() == 2:
+            self.p_number.delete(0, 'end')
             self.switch(self.p_number)
             self.switch(self.start_number)
             self.switch(self.end_number)
@@ -151,6 +149,8 @@ class PdfTool:
         self.output_merge.delete(0, last=END)
         self.switch(self.output_merge)
         self.switch(self.button_merge)
+        self.switch(self.button_delete_merge)
+        self.switch(self.button_delete_all)
         self.listbox.delete(0, last=END)
         self.paths = []
         messagebox.showinfo("RESULT", "pdfs merged successfully", icon='info')
@@ -198,13 +198,18 @@ class PdfTool:
         current_tab = self.tab_control.index(self.tab_control.select())
         if current_tab == 0:
             selection = self.listbox.curselection()
-            for index in selection[::-1]:
-                self.listbox.delete(index)
-                del (self.paths[index])
-            if self.listbox.size() < 1:
-                self.switch(self.button_delete_merge)
-                self.switch(self.button_delete_all)
-        if current_tab == 2:
+            if len(selection) > 0:
+                for index in selection[::-1]:
+                    self.listbox.delete(index)
+                    del (self.paths[index])
+                if self.listbox.size() == 1:
+                    self.output_merge.delete(0, last=END)
+                    self.switch(self.output_merge)
+                    self.switch(self.button_merge)
+                if self.listbox.size() < 1:
+                    self.switch(self.button_delete_merge)
+                    self.switch(self.button_delete_all)
+        if current_tab == 1:
             self.path = ""
             self.output_extract.delete(0, last=END)
             self.file.config(text="")
@@ -217,6 +222,9 @@ class PdfTool:
         self.paths = []
         self.switch(self.button_delete_merge)
         self.switch(self.button_delete_all)
+        self.output_merge.delete(0, last=END)
+        self.switch(self.output_merge)
+        self.switch(self.button_merge)
 
 
 if __name__ == '__main__':
