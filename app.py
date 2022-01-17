@@ -11,7 +11,7 @@ class PdfTool:
         self.master = master
         self.master.title("PDF tool")
         self.master.minsize(400, 300)
-        root.iconbitmap("assets/PDF.ico")
+        self.master.iconbitmap("assets/PDF.ico")
         self.tab_control = ttk.Notebook(self.master)
         self.paths = []
         self.path = ""
@@ -51,7 +51,7 @@ class PdfTool:
                                                                                                sticky="ew")
         self.button_add_extract = Button(self.tab_extract, text="select file", command=self.upload_action)
         self.button_add_extract.grid(row=1, column=1)
-        self.file = Label(self.tab_extract, text="")
+        self.file = Label(self.tab_extract, text="", font=("Arial", 13))
         self.file.grid(row=1, column=2, columnspan=2)
         self.var = IntVar(value=1)
         self.one = Radiobutton(self.tab_extract, variable=self.var, value=1,
@@ -183,8 +183,10 @@ class PdfTool:
                 page_num_end = int(self.end_number.get())
             except ValueError:
                 messagebox.showinfo("ERROR", "please enter page number", icon='error')
+                return
             if page_num_end < page_num_start or page_num_start < 1 or page_num_end > num_pages:
                 messagebox.showinfo("ERROR", "invalid page numbers", icon='error')
+                return
             folder_selected = fd.askdirectory()
             if folder_selected == "":
                 return
