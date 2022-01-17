@@ -1,11 +1,12 @@
 import tkinter as tk
-from tkinter import ttk, Button, RIGHT, END, Listbox, messagebox, Radiobutton, Label, NORMAL, DISABLED, LEFT, CENTER, \
-    Entry, IntVar
+from tkinter import ttk, Button, Listbox, messagebox, Entry, IntVar, Radiobutton, Label, NORMAL, DISABLED, RIGHT, END, \
+    LEFT, CENTER
 import tkinter.filedialog as fd
 from utils import merge_pdfs, get_num_pages, extract_pages_from_pdf, extract_page_from_pdf
 
 
 class PdfTool:
+
     def __init__(self, master):
         # general config of the app
         self.master = master
@@ -33,10 +34,12 @@ class PdfTool:
         self.output_merge["state"] = DISABLED
         self.output_merge.pack(expand=1)
         self.button_add_merge = Button(self.tab_merge, text="select files", width=10, height=2,
-                                       command=self.upload_action)
-        self.button_merge = Button(self.tab_merge, text="merge files", width=10, height=2, command=self.merge_files)
-        self.button_delete_merge = Button(self.tab_merge, text="delete", width=10, height=2, command=self.delete)
-        self.button_delete_all = Button(self.tab_merge, text="delete_all", width=10, height=2, command=self.delete_all)
+                                       command=self.upload_handler)
+        self.button_merge = Button(self.tab_merge, text="merge files", width=10, height=2, command=self.merge_handler)
+        self.button_delete_merge = Button(self.tab_merge, text="delete", width=10, height=2,
+                                          command=self.delete_handler)
+        self.button_delete_all = Button(self.tab_merge, text="delete_all", width=10, height=2,
+                                        command=self.delete_all_handler)
         self.button_delete_merge["state"] = DISABLED
         self.button_delete_all["state"] = DISABLED
         self.button_merge["state"] = DISABLED
@@ -49,19 +52,19 @@ class PdfTool:
         Label(self.tab_extract, text="Choose pdf files you want to extract page(s) from").grid(row=0, column=1,
                                                                                                columnspan=3,
                                                                                                sticky="ew")
-        self.button_add_extract = Button(self.tab_extract, text="select file", command=self.upload_action)
+        self.button_add_extract = Button(self.tab_extract, text="select file", command=self.upload_handler)
         self.button_add_extract.grid(row=1, column=1)
         self.file = Label(self.tab_extract, text="", font=("Arial", 13))
         self.file.grid(row=1, column=2, columnspan=2)
         self.var = IntVar(value=1)
         self.one = Radiobutton(self.tab_extract, variable=self.var, value=1,
-                               command=self.radio_button_manager, text="extract 1 page")
+                               command=self.radio_button_handler, text="extract 1 page")
         self.one.grid(row=2, column=1, sticky="w")
         self.p_number = Entry(self.tab_extract, validate="key",
                               validatecommand=(self.tab_extract.register(self.only_numbers), '%S'), justify=CENTER)
         self.p_number.grid(row=2, column=2)
         self.two = Radiobutton(self.tab_extract, variable=self.var, value=2,
-                               command=self.radio_button_manager, text="extract a range of pages", )
+                               command=self.radio_button_handler, text="extract a range of pages", )
         self.two.grid(row=3, column=1)
         self.start_number = Entry(self.tab_extract, validate="key",
                                   validatecommand=(self.tab_extract.register(self.only_numbers), '%S'), justify=CENTER)
@@ -76,26 +79,38 @@ class PdfTool:
         self.output_extract = Entry(self.tab_extract, justify=CENTER)
         self.output_extract.grid(row=4, column=2, sticky="ew")
         self.output_extract["state"] = DISABLED
-        self.button_extract = Button(self.tab_extract, text="extract", command=self.extract)
+        self.button_extract = Button(self.tab_extract, text="extract", command=self.extract_handler)
         self.button_extract.grid(row=6, column=2, sticky="ew")
         self.button_extract["state"] = DISABLED
-        self.button_delete_extract = Button(self.tab_extract, text="delete", command=self.delete)
+        self.button_delete_extract = Button(self.tab_extract, text="delete", command=self.delete_handler)
         self.button_delete_extract.grid(row=5, column=2, sticky="news")
         self.button_delete_extract["state"] = DISABLED
 
-    # function to validate mark entry
     @staticmethod
     def only_numbers(char):
+        """
+        function to validate mark entry
+        :param char
+        :return: boolean
+        """
         return char.isdigit()
 
     @staticmethod
     def switch(component):
+        """
+        switch the state of a component
+        :param component
+        """
         if component["state"] == NORMAL:
             component["state"] = DISABLED
         else:
             component["state"] = NORMAL
 
-    def radio_button_manager(self):
+    def radio_button_handler(self):
+        """
+        handles switching between extracting one page
+        or a range of pages
+        """
         if self.var.get() == 1:
             self.start_number.delete(0, END)
             self.end_number.delete(0, END)
@@ -109,7 +124,10 @@ class PdfTool:
             self.start_number["state"] = NORMAL
             self.end_number["state"] = NORMAL
 
-    def upload_action(self):
+    def upload_handler(self):
+        """
+        handles uploaded pdf files
+        """
         current_tab = self.tab_control.index(self.tab_control.select())
         filenames = fd.askopenfilenames(filetypes=[("Text files", "*.pdf")],
                                         title='Choose pdfs to merge')
@@ -137,7 +155,10 @@ class PdfTool:
                 self.switch(self.output_merge)
                 self.switch(self.button_merge)
 
-    def merge_files(self):
+    def merge_handler(self):
+        """
+        handles merging pdf files
+        """
         file_name = self.output_merge.get()
         if len(file_name) == 0:
             messagebox.showinfo("ERROR", "Please entre the name of the output file", icon='error')
@@ -155,7 +176,10 @@ class PdfTool:
         self.paths = []
         messagebox.showinfo("RESULT", "pdfs merged successfully", icon='info')
 
-    def extract(self):
+    def extract_handler(self):
+        """
+        handles extractin page(s) from pdf file
+        """
         num_pages = get_num_pages(self.path)
         if self.output_extract.get() == "":
             messagebox.showinfo("ERROR", "Please enter the name of the output file", icon='error')
@@ -197,7 +221,10 @@ class PdfTool:
             self.switch(self.output_extract)
             messagebox.showinfo("INFO", "page extracted successfully", icon='info')
 
-    def delete(self):
+    def delete_handler(self):
+        """
+        handles deleting the uploaded file(s) from selection
+        """
         current_tab = self.tab_control.index(self.tab_control.select())
         if current_tab == 0:
             selection = self.listbox.curselection()
@@ -220,7 +247,10 @@ class PdfTool:
             self.switch(self.button_extract)
             self.switch(self.output_extract)
 
-    def delete_all(self):
+    def delete_all_handler(self):
+        """
+        handles deleting all the uploaded files from selection
+        """
         self.listbox.delete(0, END)
         self.paths = []
         self.switch(self.button_delete_merge)
