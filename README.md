@@ -22,13 +22,15 @@ Simply run app.py
    ```
    
 ### Standalone  executable
-launch the app **with PDFtool.exe**
+Launch the app **with PDFtool.exe**
+
 ## DEMO 
 
 ![image](https://user-images.githubusercontent.com/58445913/149843025-c9cdb14b-b2c7-471d-80eb-312b3aca3d39.png)
 
-Feel free to fork the project , report bugs or suggest additional features
+## Contribution
 
+Feel free to fork the project,report bugs or suggest additional features
 
 
 ## License
