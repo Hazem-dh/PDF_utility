@@ -12,7 +12,10 @@ class PdfTool:
         self.master = master
         self.master.title("PDF tool")
         self.master.minsize(400, 300)
-        self.master.iconbitmap("assets/PDF.ico")
+        try:  # launch the exe from anywhere without needing the icon
+            self.master.iconbitmap("assets/PDF.ico")
+        except:
+            pass
         self.tab_control = ttk.Notebook(self.master)
         self.paths = []
         self.path = ""
