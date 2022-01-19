@@ -28,10 +28,14 @@ Launch the app **with PDFtool.exe**
 
 ![image](https://user-images.githubusercontent.com/58445913/149843025-c9cdb14b-b2c7-471d-80eb-312b3aca3d39.png)
 
-## Contribution
+## Contribute
 
-Feel free to fork the project,report bugs or suggest additional features
+### How to contribute
 
+- Report a bug or an issue in [issues](https://github.com/Hazem-dh/PDF_utility/issues)
+- Directly create your pull request
+
+To contribute, fork the repo on your profile, do your edits, and create a pull request.
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
