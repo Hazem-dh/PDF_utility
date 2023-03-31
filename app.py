@@ -1,19 +1,22 @@
-import tkinter as tk
-from tkinter import ttk, Button, Listbox, messagebox, Entry, IntVar, Radiobutton, Label, NORMAL, DISABLED, RIGHT, END, \
+import customtkinter
+from customtkinter import CTkLabel ,CTkButton,CTkEntry,CTkRadioButton
+
+from tkinter import ttk, Listbox, messagebox, Entry, IntVar, NORMAL, DISABLED, RIGHT, END, \
     LEFT, CENTER
 import tkinter.filedialog as fd
 from utils import merge_pdfs, get_num_pages, extract_pages_from_pdf, extract_page_from_pdf
 
+customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
+customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
+class Application(customtkinter.CTk):
 
-class PdfTool:
-
-    def __init__(self, master):
+    def __init__(self):
         # general config of the app
-        self.master = master
-        self.master.title("PDF tool")
-        self.master.minsize(400, 300)
+        super().__init__()
+        self.title("PDF tool")
+        self.minsize(400, 300)
         try:  # launch the exe from anywhere without needing the icon
-            self.master.iconbitmap("assets/PDF.ico")
+            self.iconbitmap("assets/PDF.ico")
         except:
             pass
         self.tab_control = ttk.Notebook(self.master)
@@ -21,9 +24,9 @@ class PdfTool:
         self.path = ""
 
         # creating tabs
-        self.tab_merge = ttk.Frame(self.tab_control)
-        Label(self.tab_merge, text="Choose pdf file you want to merge").pack()
-        self.tab_extract = ttk.Frame(self.tab_control)
+        self.tab_merge = customtkinter.CTkFrame(self.tab_control)
+        CTkLabel(self.tab_merge,font=("Helvetica",15), text="Choose pdf file you want to merge").pack()
+        self.tab_extract = customtkinter.CTkFrame(self.tab_control)
         self.tab_control.add(self.tab_merge, text='merge')
         self.tab_control.add(self.tab_extract, text='extract')
         self.tab_control.pack(expand=1, fill="both")
@@ -31,62 +34,62 @@ class PdfTool:
         # Merge tab gadgets
         self.listbox = Listbox(self.tab_merge, selectmode='multiple')
         self.listbox.pack(expand=1, fill="both")
-        self.label = tk.Label(self.tab_merge, text="Output file name")
+        self.label = CTkLabel(self.tab_merge, text="Output file name")
         self.label.pack(expand=1)
         self.output_merge = Entry(self.tab_merge, justify=CENTER)
         self.output_merge["state"] = DISABLED
         self.output_merge.pack(expand=1)
-        self.button_add_merge = Button(self.tab_merge, text="select files", width=10, height=2,
+        self.button_add_merge = CTkButton(self.tab_merge,font=("Helvetica",12,"bold")  ,text="select files",corner_radius=5,width=10, height=2,
                                        command=self.upload_handler)
-        self.button_merge = Button(self.tab_merge, text="merge files", width=10, height=2, command=self.merge_handler)
-        self.button_delete_merge = Button(self.tab_merge, text="delete", width=10, height=2,
+        self.button_merge = CTkButton(self.tab_merge, text="merge files", width=10, height=2, command=self.merge_handler)
+        self.button_delete_merge = CTkButton(self.tab_merge, text="delete", width=10, height=2,
                                           command=self.delete_handler)
-        self.button_delete_all = Button(self.tab_merge, text="delete_all", width=10, height=2,
+        self.button_delete_all = CTkButton(self.tab_merge, text="delete_all", width=10, height=2,
                                         command=self.delete_all_handler)
         self.button_delete_merge["state"] = DISABLED
         self.button_delete_all["state"] = DISABLED
         self.button_merge["state"] = DISABLED
-        self.button_delete_merge.pack(expand=1, fill="both", side=RIGHT)
-        self.button_delete_all.pack(expand=1, fill="both", side=RIGHT)
-        self.button_add_merge.pack(expand=1, fill="both", side=LEFT)
-        self.button_merge.pack(expand=1, fill="both", side=LEFT)
+        self.button_delete_merge.pack(expand=1, fill="both", padx=5, pady=5, side=RIGHT)
+        self.button_delete_all.pack(expand=1, fill="both", padx=5, pady=5,side=RIGHT)
+        self.button_add_merge.pack(expand=1, fill="both", padx=5,pady=5, side=LEFT)
+        self.button_merge.pack(expand=1, fill="both", padx=5,pady=5, side=LEFT)
 
         # extract tab gadgets
-        Label(self.tab_extract, text="Choose pdf files you want to extract page(s) from").grid(row=0, column=1,
+        CTkLabel(self.tab_extract, text="Choose pdf files you want to extract page(s) from").grid(row=0, column=1,
                                                                                                columnspan=3,
                                                                                                sticky="ew")
-        self.button_add_extract = Button(self.tab_extract, text="select file", command=self.upload_handler)
+        self.button_add_extract = CTkButton(self.tab_extract, text="select file", command=self.upload_handler)
         self.button_add_extract.grid(row=1, column=1)
-        self.file = Label(self.tab_extract, text="", font=("Arial", 13))
+        self.file = CTkLabel(self.tab_extract, text="", font=("Arial", 13))
         self.file.grid(row=1, column=2, columnspan=2)
         self.var = IntVar(value=1)
-        self.one = Radiobutton(self.tab_extract, variable=self.var, value=1,
+        self.one = CTkRadioButton(self.tab_extract, variable=self.var, value=1,
                                command=self.radio_button_handler, text="extract 1 page")
-        self.one.grid(row=2, column=1, sticky="w")
-        self.p_number = Entry(self.tab_extract, validate="key",
+        self.one.grid(row=2, column=1, sticky="w",pady=(10, 10))
+        self.p_number = CTkEntry(self.tab_extract, validate="key",
                               validatecommand=(self.tab_extract.register(self.only_numbers), '%S'), justify=CENTER)
-        self.p_number.grid(row=2, column=2)
-        self.two = Radiobutton(self.tab_extract, variable=self.var, value=2,
+        self.p_number.grid(row=2, column=2,pady=(10, 10))
+        self.two = CTkRadioButton(self.tab_extract, variable=self.var, value=2,
                                command=self.radio_button_handler, text="extract a range of pages", )
         self.two.grid(row=3, column=1)
-        self.start_number = Entry(self.tab_extract, validate="key",
+        self.start_number = customtkinter.CTkEntry(self.tab_extract, validate="key",
                                   validatecommand=(self.tab_extract.register(self.only_numbers), '%S'), justify=CENTER)
         self.start_number.grid(row=3, column=2)
         self.start_number["state"] = DISABLED
-        self.end_number = Entry(self.tab_extract, validate="key",
+        self.end_number = customtkinter.CTkEntry(self.tab_extract, validate="key",
                                 validatecommand=(self.tab_extract.register(self.only_numbers), '%S'), justify=CENTER)
         self.end_number.grid(row=3, column=3)
         self.end_number["state"] = DISABLED
-        self.label = tk.Label(self.tab_extract, text="Output file name")
-        self.label.grid(row=4, column=1, sticky="news")
-        self.output_extract = Entry(self.tab_extract, justify=CENTER)
-        self.output_extract.grid(row=4, column=2, sticky="ew")
+        self.label = CTkLabel(self.tab_extract, text="Output file name")
+        self.label.grid(row=4, column=1, sticky="news",pady=(10, 10))
+        self.output_extract = customtkinter.CTkEntry(self.tab_extract, justify=CENTER)
+        self.output_extract.grid(row=4, column=2, sticky="ew",pady=(10, 10))
         self.output_extract["state"] = DISABLED
-        self.button_extract = Button(self.tab_extract, text="extract", command=self.extract_handler)
-        self.button_extract.grid(row=6, column=2, sticky="ew")
+        self.button_extract = CTkButton(self.tab_extract, text="extract", command=self.extract_handler)
+        self.button_extract.grid(row=6, column=2, sticky="ew", )
         self.button_extract["state"] = DISABLED
-        self.button_delete_extract = Button(self.tab_extract, text="delete", command=self.delete_handler)
-        self.button_delete_extract.grid(row=5, column=2, sticky="news")
+        self.button_delete_extract = CTkButton(self.tab_extract, text="delete", command=self.delete_handler)
+        self.button_delete_extract.grid(row=5, column=2, sticky="news",pady=(10, 10),)
         self.button_delete_extract["state"] = DISABLED
 
     @staticmethod
@@ -264,6 +267,5 @@ class PdfTool:
 
 
 if __name__ == '__main__':
-    root = tk.Tk()
-    my_gui = PdfTool(root)
-    root.mainloop()
+    pdf_app = Application()
+    pdf_app.mainloop()
