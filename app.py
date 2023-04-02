@@ -1,96 +1,152 @@
+import os
+from PIL import Image
 import customtkinter
-from customtkinter import CTkLabel ,CTkButton,CTkEntry,CTkRadioButton
+from customtkinter import CTkLabel, CTkButton, CTkEntry, CTkRadioButton, CTkFrame, CTkImage, CTkFont, CTkOptionMenu
 
 from tkinter import ttk, Listbox, messagebox, Entry, IntVar, NORMAL, DISABLED, RIGHT, END, \
     LEFT, CENTER
 import tkinter.filedialog as fd
 from utils import merge_pdfs, get_num_pages, extract_pages_from_pdf, extract_page_from_pdf
 
-customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
-customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
-class Application(customtkinter.CTk):
 
+class App(customtkinter.CTk):
     def __init__(self):
-        # general config of the app
         super().__init__()
         self.title("PDF tool")
-        self.minsize(400, 300)
+        self.geometry("700x450")
+        self.minsize(600, 450)
         try:  # launch the exe from anywhere without needing the icon
             self.iconbitmap("assets/PDF.ico")
         except:
             pass
-        self.tab_control = ttk.Notebook(self.master)
         self.paths = []
         self.path = ""
+        # set grid layout 1x2
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
 
-        # creating tabs
-        self.tab_merge = customtkinter.CTkFrame(self.tab_control)
-        CTkLabel(self.tab_merge,font=("Helvetica",15), text="Choose pdf file you want to merge").pack()
-        self.tab_extract = customtkinter.CTkFrame(self.tab_control)
-        self.tab_control.add(self.tab_merge, text='merge')
-        self.tab_control.add(self.tab_extract, text='extract')
-        self.tab_control.pack(expand=1, fill="both")
+        # load images with light and dark mode image
+        image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets")
+        self.logo_image = CTkImage(Image.open(os.path.join(image_path, "PDF.png")), size=(26, 26))
+        self.image_icon_image = CTkImage(Image.open(os.path.join(image_path, "image_icon_light.png")),
+                                         size=(20, 20))
+        self.merge_image = CTkImage(light_image=Image.open(os.path.join(image_path, "merge_dark.png")),
+                                    dark_image=Image.open(os.path.join(image_path, "merge_light.png")),
+                                    size=(30, 30))
+        self.chat_image = CTkImage(light_image=Image.open(os.path.join(image_path, "extract.png")),
+                                   dark_image=Image.open(os.path.join(image_path, "extract.png")),
+                                   size=(30, 30))
 
-        # Merge tab gadgets
-        self.listbox = Listbox(self.tab_merge, selectmode='multiple')
-        self.listbox.pack(expand=1, fill="both")
-        self.label = CTkLabel(self.tab_merge, text="Output file name")
-        self.label.pack(expand=1)
-        self.output_merge = Entry(self.tab_merge, justify=CENTER)
-        self.output_merge["state"] = DISABLED
-        self.output_merge.pack(expand=1)
-        self.button_add_merge = CTkButton(self.tab_merge,font=("Helvetica",12,"bold")  ,text="select files",corner_radius=5,width=10, height=2,
-                                       command=self.upload_handler)
-        self.button_merge = CTkButton(self.tab_merge, text="merge files", width=10, height=2, command=self.merge_handler)
-        self.button_delete_merge = CTkButton(self.tab_merge, text="delete", width=10, height=2,
-                                          command=self.delete_handler)
-        self.button_delete_all = CTkButton(self.tab_merge, text="delete_all", width=10, height=2,
-                                        command=self.delete_all_handler)
-        self.button_delete_merge["state"] = DISABLED
-        self.button_delete_all["state"] = DISABLED
-        self.button_merge["state"] = DISABLED
-        self.button_delete_merge.pack(expand=1, fill="both", padx=5, pady=5, side=RIGHT)
-        self.button_delete_all.pack(expand=1, fill="both", padx=5, pady=5,side=RIGHT)
-        self.button_add_merge.pack(expand=1, fill="both", padx=5,pady=5, side=LEFT)
-        self.button_merge.pack(expand=1, fill="both", padx=5,pady=5, side=LEFT)
+        # create navigation frame
+        self.navigation_frame = CTkFrame(self, corner_radius=0)
+        self.navigation_frame.grid(row=0, column=0, sticky="nsew")
+        self.navigation_frame.grid_rowconfigure(4, weight=1)
 
-        # extract tab gadgets
-        CTkLabel(self.tab_extract, text="Choose pdf files you want to extract page(s) from").grid(row=0, column=1,
-                                                                                               columnspan=3,
-                                                                                               sticky="ew")
-        self.button_add_extract = CTkButton(self.tab_extract, text="select file", command=self.upload_handler)
-        self.button_add_extract.grid(row=1, column=1)
-        self.file = CTkLabel(self.tab_extract, text="", font=("Arial", 13))
-        self.file.grid(row=1, column=2, columnspan=2)
+        self.navigation_frame_label = CTkLabel(self.navigation_frame, text="PDF Tool",
+                                               image=self.logo_image,
+                                               compound="left",
+                                               font=CTkFont(size=15, weight="bold"))
+        self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
+
+        self.frame_merge_button = CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10,
+                                            text="Merge",
+                                            fg_color="transparent", text_color=("gray10", "gray90"),
+                                            hover_color=("gray70", "gray30"),
+                                            image=self.merge_image, anchor="w", command=self.frame_merge_button_event)
+        self.frame_merge_button.grid(row=1, column=0, sticky="ew")
+
+        self.frame_extract_button = CTkButton(self.navigation_frame, corner_radius=0, height=40,
+                                              border_spacing=10, text="Extract",
+                                              fg_color="transparent", text_color=("gray10", "gray90"),
+                                              hover_color=("gray70", "gray30"),
+                                              image=self.chat_image, anchor="w",
+                                              command=self.frame_extract_button_event)
+        self.frame_extract_button.grid(row=2, column=0, sticky="ew")
+
+        self.appearance_mode_menu = CTkOptionMenu(self.navigation_frame,
+                                                  values=["Light", "Dark", "System"],
+                                                  command=self.change_appearance_mode_event)
+        self.appearance_mode_menu.grid(row=6, column=0, padx=20, pady=20, sticky="s")
+
+        # create merge Frame
+        self.merge_frame = CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.merge_frame.grid_columnconfigure(0, weight=1)
+
+        # merge Frame gadgets
+        self.merge_title = CTkLabel(master=self.merge_frame, font=("Helvetica", 16),
+                                    text="Choose pdf file you want to merge")
+        self.merge_title.grid(row=0, column=0, padx=20, pady=(15, 0))
+        self.listbox = Listbox(self.merge_frame, width=1000, selectmode='multiple')
+        self.listbox.grid(row=1, column=0, padx=20, pady=(10, 0))
+        self.output_title = CTkLabel(master=self.merge_frame, font=("Helvetica", 13),
+                                     text="Output file name")
+        self.output_title.grid(row=2, column=0, padx=20, pady=(10, 0))
+        self.output_merge = CTkEntry(self.merge_frame, state=DISABLED)
+        self.output_merge.grid(row=3, column=0, padx=20, pady=(10, 0))
+
+        self.button_select = CTkButton(self.merge_frame, text="Select files",
+                                       image=self.image_icon_image, corner_radius=10,
+                                       compound="left", command=self.upload_handler)
+        self.button_select.grid(row=4, column=0, padx=20, pady=5)
+        self.button_merge = CTkButton(self.merge_frame, text="Merge files",
+                                      image=self.image_icon_image, corner_radius=10,
+                                      compound="left", state=DISABLED)
+        self.button_merge.grid(row=5, column=0, padx=20, pady=5)
+        self.button_delete = CTkButton(self.merge_frame, text="Delete",
+                                       image=self.image_icon_image, corner_radius=10,
+                                       compound="left", state=DISABLED)
+        self.button_delete.grid(row=6, column=0, padx=20, pady=5)
+        self.button_delete_all = CTkButton(self.merge_frame, text="Delete all",
+                                           image=self.image_icon_image, corner_radius=10,
+                                           compound="left", state=DISABLED)
+        self.button_delete_all.grid(row=7, column=0, padx=20, pady=5)
+
+        # create extract frame
+        self.extract_frame = CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.extract_frame.grid_columnconfigure(1, weight=1)
+
+        # extract Frame gadgets
+        self.extract_title = CTkLabel(master=self.extract_frame, font=("Helvetica", 16),
+                                      text="Choose the pdf file you want to extract page(s) from")
+        self.extract_title.grid(row=0, column=0, columnspan=2, padx=20, pady=15)
+        self.button_add_extract = CTkButton(self.extract_frame, text="select file", command=self.upload_handler)
+        self.button_add_extract.grid(row=1, column=0, padx=30)
+        self.file = CTkLabel(self.extract_frame, font=("Arial", 13))
+        self.file.grid(row=1, column=1, padx=30, pady=10)
         self.var = IntVar(value=1)
-        self.one = CTkRadioButton(self.tab_extract, variable=self.var, value=1,
-                               command=self.radio_button_handler, text="extract 1 page")
-        self.one.grid(row=2, column=1, sticky="w",pady=(10, 10))
-        self.p_number = CTkEntry(self.tab_extract, validate="key",
-                              validatecommand=(self.tab_extract.register(self.only_numbers), '%S'), justify=CENTER)
-        self.p_number.grid(row=2, column=2,pady=(10, 10))
-        self.two = CTkRadioButton(self.tab_extract, variable=self.var, value=2,
-                               command=self.radio_button_handler, text="extract a range of pages", )
-        self.two.grid(row=3, column=1)
-        self.start_number = customtkinter.CTkEntry(self.tab_extract, validate="key",
-                                  validatecommand=(self.tab_extract.register(self.only_numbers), '%S'), justify=CENTER)
-        self.start_number.grid(row=3, column=2)
-        self.start_number["state"] = DISABLED
-        self.end_number = customtkinter.CTkEntry(self.tab_extract, validate="key",
-                                validatecommand=(self.tab_extract.register(self.only_numbers), '%S'), justify=CENTER)
-        self.end_number.grid(row=3, column=3)
-        self.end_number["state"] = DISABLED
-        self.label = CTkLabel(self.tab_extract, text="Output file name")
-        self.label.grid(row=4, column=1, sticky="news",pady=(10, 10))
-        self.output_extract = customtkinter.CTkEntry(self.tab_extract, justify=CENTER)
-        self.output_extract.grid(row=4, column=2, sticky="ew",pady=(10, 10))
-        self.output_extract["state"] = DISABLED
-        self.button_extract = CTkButton(self.tab_extract, text="extract", command=self.extract_handler)
-        self.button_extract.grid(row=6, column=2, sticky="ew", )
-        self.button_extract["state"] = DISABLED
-        self.button_delete_extract = CTkButton(self.tab_extract, text="delete", command=self.delete_handler)
-        self.button_delete_extract.grid(row=5, column=2, sticky="news",pady=(10, 10),)
-        self.button_delete_extract["state"] = DISABLED
+        self.one = CTkRadioButton(self.extract_frame, variable=self.var, value=1,
+                                  command=self.radio_button_handler, text="extract 1 page")
+        self.one.grid(row=2, column=0, pady=(10, 10))
+
+        self.page_number = CTkEntry(self.extract_frame, validate="key",
+                                    validatecommand=(self.extract_frame.register(self.only_numbers), '%S'),
+                                    justify=CENTER)
+        self.page_number.grid(row=2, column=1, pady=(10, 10))
+        self.two = CTkRadioButton(self.extract_frame, variable=self.var, value=2,
+                                  command=self.radio_button_handler, text="extract a range of pages", )
+        self.two.grid(row=3, column=0)
+        self.start_number = CTkEntry(self.extract_frame, validate="key",
+                                     validatecommand=(
+                                         self.extract_frame.register(self.only_numbers), '%S'),
+                                     justify=CENTER, state=DISABLED)
+        self.start_number.grid(row=3, column=1)
+        self.end_number = CTkEntry(self.extract_frame, validate="key",
+                                   validatecommand=(self.extract_frame.register(self.only_numbers), '%S'),
+                                   justify=CENTER, state=DISABLED)
+        self.end_number.grid(row=3, column=1)
+        self.label = CTkLabel(self.extract_frame, text="Output file name")
+        self.label.grid(row=4, column=0, pady=(10, 10))
+        self.output_extract = CTkEntry(self.extract_frame, justify=CENTER, state=DISABLED)
+        self.output_extract.grid(row=4, column=1, pady=(10, 10))
+        self.button_extract = CTkButton(self.extract_frame, text="extract", command=self.extract_handler,
+                                        state=DISABLED)
+        self.button_extract.grid(row=5, column=1)
+        self.button_delete_extract = CTkButton(self.extract_frame, text="delete", command=self.delete_handler,
+                                               state=DISABLED)
+        self.button_delete_extract.grid(row=5, column=2, sticky="news", pady=(10, 10), )
+
+        # select default frame
+        self.select_frame_by_name("merge")
 
     @staticmethod
     def only_numbers(char):
@@ -108,9 +164,9 @@ class Application(customtkinter.CTk):
         :param component
         """
         if component["state"] == NORMAL:
-            component["state"] = DISABLED
+            component.configure(state=DISABLED)
         else:
-            component["state"] = NORMAL
+            component.configure(state=NORMAL)
 
     def radio_button_handler(self):
         """
@@ -120,21 +176,25 @@ class Application(customtkinter.CTk):
         if self.var.get() == 1:
             self.start_number.delete(0, END)
             self.end_number.delete(0, END)
-            self.p_number["state"] = NORMAL
-            self.start_number["state"] = DISABLED
-            self.end_number["state"] = DISABLED
+            self.page_number.configure(state=NORMAL)
+            self.start_number.configure(state=DISABLED)
+            self.end_number.configure(state=DISABLED)
 
         if self.var.get() == 2:
-            self.p_number.delete(0, 'end')
-            self.p_number["state"] = DISABLED
-            self.start_number["state"] = NORMAL
-            self.end_number["state"] = NORMAL
+            self.page_number.delete(0, 'end')
+            self.page_number.configure(state=DISABLED)
+            self.start_number.configure(state=NORMAL)
+            self.end_number.configure(state=NORMAL)
 
     def upload_handler(self):
         """
         handles uploaded pdf files
         """
-        current_tab = self.tab_control.index(self.tab_control.select())
+        print(dir(self.extract_frame))  # frame 2 is merge and 3 is extract
+        print(self.extract_frame.winfo_name())
+        print(self.grab_current())
+
+        current_tab = 0  # self.tab_control.index(self.tab_control.select())
         filenames = fd.askopenfilenames(filetypes=[("Text files", "*.pdf")],
                                         title='Choose pdfs to merge')
         if current_tab != 0 and len(filenames) > 1:  # check if user selected more than one file
@@ -192,7 +252,7 @@ class Application(customtkinter.CTk):
             return
         if self.var.get() == 1:
             try:
-                page_num = int(self.p_number.get())
+                page_num = int(self.page_number.get())
             except ValueError:
                 messagebox.showinfo("ERROR", "please enter page number", icon='error')
                 return
@@ -205,7 +265,7 @@ class Application(customtkinter.CTk):
                     return
                 extract_page_from_pdf(self.path, page_num, folder_selected, self.output_extract.get())
                 self.output_extract.delete(0, last=END)
-                self.p_number.delete(0, last=END)
+                self.page_number.delete(0, last=END)
                 messagebox.showinfo("INFO", "page extracted successfully", icon='info')
         else:
             try:
@@ -265,7 +325,31 @@ class Application(customtkinter.CTk):
         self.output_merge["state"] = DISABLED
         self.button_merge["state"] = DISABLED
 
+    def select_frame_by_name(self, name):
+        # set button color for selected button
+        self.frame_merge_button.configure(fg_color=("gray75", "gray25") if name == "merge" else "transparent")
+        self.frame_extract_button.configure(fg_color=("gray75", "gray25") if name == "extract" else "transparent")
 
-if __name__ == '__main__':
-    pdf_app = Application()
-    pdf_app.mainloop()
+        # show selected frame
+        if name == "merge":
+            self.merge_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.merge_frame.grid_forget()
+        if name == "extract":
+            self.extract_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.extract_frame.grid_forget()
+
+    def frame_merge_button_event(self):
+        self.select_frame_by_name("merge")
+
+    def frame_extract_button_event(self):
+        self.select_frame_by_name("extract")
+
+    def change_appearance_mode_event(self, new_appearance_mode):
+        customtkinter.set_appearance_mode(new_appearance_mode)
+
+
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()

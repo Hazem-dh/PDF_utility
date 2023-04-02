@@ -1,6 +1,5 @@
 venv
 .idea
 __pycache__/
-assets
 build
 app.spec
