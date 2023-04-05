@@ -19,6 +19,7 @@ class App(customtkinter.CTk):
             self.iconbitmap("assets/PDF.ico")
         except:
             pass
+        self.frame = 1  # track active frame 1: merge , 2:extract
         self.paths = []
         self.path = ""
         # set grid layout 1x2
@@ -90,15 +91,15 @@ class App(customtkinter.CTk):
         self.button_select.grid(row=4, column=0, padx=20, pady=5)
         self.button_merge = CTkButton(self.merge_frame, text="Merge files",
                                       image=self.image_icon_image, corner_radius=10,
-                                      compound="left", state=DISABLED)
+                                      compound="left", state=DISABLED, command=self.merge_handler)
         self.button_merge.grid(row=5, column=0, padx=20, pady=5)
-        self.button_delete = CTkButton(self.merge_frame, text="Delete",
-                                       image=self.image_icon_image, corner_radius=10,
-                                       compound="left", state=DISABLED)
-        self.button_delete.grid(row=6, column=0, padx=20, pady=5)
+        self.button_delete_merge = CTkButton(self.merge_frame, text="Delete",
+                                             image=self.image_icon_image, corner_radius=10,
+                                             compound="left", state=DISABLED, command=self.delete_handler)
+        self.button_delete_merge.grid(row=6, column=0, padx=20, pady=5)
         self.button_delete_all = CTkButton(self.merge_frame, text="Delete all",
                                            image=self.image_icon_image, corner_radius=10,
-                                           compound="left", state=DISABLED)
+                                           compound="left", state=DISABLED, command=self.delete_all_handler)
         self.button_delete_all.grid(row=7, column=0, padx=20, pady=5)
 
         # create extract frame
@@ -111,7 +112,7 @@ class App(customtkinter.CTk):
         self.extract_title.grid(row=0, column=0, columnspan=2, padx=20, pady=15)
         self.button_add_extract = CTkButton(self.extract_frame, text="select file", command=self.upload_handler)
         self.button_add_extract.grid(row=1, column=0, padx=30)
-        self.file = CTkLabel(self.extract_frame, font=("Arial", 13))
+        self.file = CTkLabel(self.extract_frame, text="", font=("Arial", 13))
         self.file.grid(row=1, column=1, padx=30, pady=10)
         self.var = IntVar(value=1)
         self.one = CTkRadioButton(self.extract_frame, variable=self.var, value=1,
@@ -143,7 +144,7 @@ class App(customtkinter.CTk):
         self.button_extract.grid(row=5, column=1)
         self.button_delete_extract = CTkButton(self.extract_frame, text="delete", command=self.delete_handler,
                                                state=DISABLED)
-        self.button_delete_extract.grid(row=5, column=2, sticky="news", pady=(10, 10), )
+        self.button_delete_extract.grid(row=6, column=1, pady=(10, 10))
 
         # select default frame
         self.select_frame_by_name("merge")
@@ -163,7 +164,7 @@ class App(customtkinter.CTk):
         switch the state of a component
         :param component
         """
-        if component["state"] == NORMAL:
+        if component.cget("state") == NORMAL:
             component.configure(state=DISABLED)
         else:
             component.configure(state=NORMAL)
@@ -190,34 +191,29 @@ class App(customtkinter.CTk):
         """
         handles uploaded pdf files
         """
-        print(dir(self.extract_frame))  # frame 2 is merge and 3 is extract
-        print(self.extract_frame.winfo_name())
-        print(self.grab_current())
-
-        current_tab = 0  # self.tab_control.index(self.tab_control.select())
+        # current_tab = self.frame  # self.tab_control.index(self.tab_control.select())
         filenames = fd.askopenfilenames(filetypes=[("Text files", "*.pdf")],
                                         title='Choose pdfs to merge')
-        if current_tab != 0 and len(filenames) > 1:  # check if user selected more than one file
+        if self.frame == 2 and len(filenames) > 1:  # check if user selected more than one file
             messagebox.showinfo("ERROR", "Please select only one file", icon='error')
             return
-
         for file in filenames:
-            if current_tab == 0:
+            if self.frame == 1:
                 self.listbox.insert(END, file.split("/")[-1])
                 self.paths.append(file)
             else:
-                self.file.config(text=file.split("/")[-1])
+                self.file.configure(text=file.split("/")[-1])
                 self.path = file
-                if self.button_delete_extract["state"] == DISABLED:
+                if self.button_delete_extract.cget("state") == DISABLED:
                     self.switch(self.button_delete_extract)
                     self.switch(self.button_extract)
                     self.switch(self.output_extract)
 
-        if current_tab == 0:
-            if self.listbox.size() > 0 and self.button_delete_merge["state"] == DISABLED:
+        if self.frame == 1:
+            if self.listbox.size() > 0 and self.button_delete_merge.cget("state") == DISABLED:
                 self.switch(self.button_delete_merge)
                 self.switch(self.button_delete_all)
-            if self.listbox.size() > 1 and self.output_merge["state"] == DISABLED:
+            if self.listbox.size() > 1 and self.output_merge.cget("state") == DISABLED:
                 self.switch(self.output_merge)
                 self.switch(self.button_merge)
 
@@ -233,12 +229,12 @@ class App(customtkinter.CTk):
         if folder_selected == "":
             return
         merge_pdfs(self.paths, folder_selected, file_name)
-        self.output_merge.delete(0, last=END)
+        self.output_merge.delete(0, END)
         self.switch(self.output_merge)
         self.switch(self.button_merge)
         self.switch(self.button_delete_merge)
         self.switch(self.button_delete_all)
-        self.listbox.delete(0, last=END)
+        self.listbox.delete(0, END)
         self.paths = []
         messagebox.showinfo("RESULT", "pdfs merged successfully", icon='info')
 
@@ -264,8 +260,8 @@ class App(customtkinter.CTk):
                 if folder_selected == "":
                     return
                 extract_page_from_pdf(self.path, page_num, folder_selected, self.output_extract.get())
-                self.output_extract.delete(0, last=END)
-                self.page_number.delete(0, last=END)
+                self.output_extract.delete(0, END)
+                self.page_number.delete(0, END)
                 messagebox.showinfo("INFO", "page extracted successfully", icon='info')
         else:
             try:
@@ -281,9 +277,9 @@ class App(customtkinter.CTk):
             if folder_selected == "":
                 return
             extract_pages_from_pdf(self.path, page_num_start, page_num_end, folder_selected, self.output_extract.get())
-            self.output_extract.delete(0, last=END)
-            self.start_number.delete(0, last=END)
-            self.end_number.delete(0, last=END)
+            self.output_extract.delete(0, END)
+            self.start_number.delete(0, END)
+            self.end_number.delete(0, END)
             self.switch(self.output_extract)
             messagebox.showinfo("INFO", "page extracted successfully", icon='info')
 
@@ -291,24 +287,23 @@ class App(customtkinter.CTk):
         """
         handles deleting the uploaded file(s) from selection
         """
-        current_tab = self.tab_control.index(self.tab_control.select())
-        if current_tab == 0:
+        if self.frame == 1:
             selection = self.listbox.curselection()
             if len(selection) > 0:
                 for index in selection[::-1]:
                     self.listbox.delete(index)
                     del (self.paths[index])
                 if self.listbox.size() == 1:
-                    self.output_merge.delete(0, last=END)
+                    self.output_merge.delete(0, END)
                     self.switch(self.output_merge)
                     self.switch(self.button_merge)
                 if self.listbox.size() < 1:
                     self.switch(self.button_delete_merge)
                     self.switch(self.button_delete_all)
-        if current_tab == 1:
+        else:
             self.path = ""
-            self.output_extract.delete(0, last=END)
-            self.file.config(text="")
+            self.output_extract.delete(0, END)
+            self.file.configure(text="")
             self.switch(self.button_delete_extract)
             self.switch(self.button_extract)
             self.switch(self.output_extract)
@@ -321,9 +316,9 @@ class App(customtkinter.CTk):
         self.paths = []
         self.switch(self.button_delete_merge)
         self.switch(self.button_delete_all)
-        self.output_merge.delete(0, last=END)
-        self.output_merge["state"] = DISABLED
-        self.button_merge["state"] = DISABLED
+        self.output_merge.delete(0, END)
+        self.output_merge.configure(state=DISABLED)
+        self.button_merge.configure(state=DISABLED)
 
     def select_frame_by_name(self, name):
         # set button color for selected button
@@ -333,10 +328,12 @@ class App(customtkinter.CTk):
         # show selected frame
         if name == "merge":
             self.merge_frame.grid(row=0, column=1, sticky="nsew")
+            self.frame = 1
         else:
             self.merge_frame.grid_forget()
         if name == "extract":
             self.extract_frame.grid(row=0, column=1, sticky="nsew")
+            self.frame = 2
         else:
             self.extract_frame.grid_forget()
 
