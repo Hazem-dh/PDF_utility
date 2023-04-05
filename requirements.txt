@@ -1,1 +1,7 @@
-pikepdf~=4.3.1
+customtkinter==5.1.2
+darkdetect==0.8.0
+deprecation==2.1.0
+lxml==4.9.2
+packaging==23.0
+pikepdf==7.1.2
+Pillow==9.4.0
