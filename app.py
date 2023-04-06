@@ -27,16 +27,19 @@ class App(customtkinter.CTk):
         # load images with light and dark mode image
         image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets")
         self.logo_image = CTkImage(Image.open(os.path.join(image_path, "PDF.png")), size=(26, 26))
-        self.image_icon_image = CTkImage(Image.open(os.path.join(image_path, "image_icon_light.png")), size=(20, 20))
         self.merge_image = CTkImage(Image.open(os.path.join(image_path, "merge.png")), size=(30, 30))
-        self.chat_image = CTkImage(Image.open(os.path.join(image_path, "extract.png")), size=(30, 30))
+        self.extarct_image = CTkImage(Image.open(os.path.join(image_path, "extract.png")), size=(30, 30))
+        self.lock_image = CTkImage(Image.open(os.path.join(image_path, "lock.png")), size=(30, 30))
+        self.select_image = CTkImage(Image.open(os.path.join(image_path, "select.png")), size=(20, 20))
+        self.delete_image = CTkImage(Image.open(os.path.join(image_path, "delete.png")), size=(20, 20))
+        self.merge_button_image = CTkImage(Image.open(os.path.join(image_path, "merge_button.png")), size=(25, 25))
+        self.extract_button_image = CTkImage(Image.open(os.path.join(image_path, "extract_button.png")), size=(20, 20))
 
         # create navigation frame
         self.navigation_frame = CTkFrame(self, corner_radius=0)
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
-        self.navigation_frame.grid_rowconfigure(4, weight=1)
-        self.navigation_frame_label = CTkLabel(self.navigation_frame, text="  q"
-                                                                           "PDF Tool",
+        self.navigation_frame.grid_rowconfigure(5, weight=1)
+        self.navigation_frame_label = CTkLabel(self.navigation_frame, text="  PDF Tool",
                                                image=self.logo_image,
                                                compound="left",
                                                font=CTkFont(size=15, weight="bold"))
@@ -48,15 +51,23 @@ class App(customtkinter.CTk):
                                             hover_color=("gray70", "gray30"),
                                             image=self.merge_image, anchor="w", command=self.frame_merge_button_event)
         self.frame_merge_button.grid(row=1, column=0, sticky="ew")
-
-        # extract button frame config
+        # lock button frame config
         self.frame_extract_button = CTkButton(self.navigation_frame, corner_radius=0, height=40,
                                               border_spacing=10, text="Extract",
                                               fg_color="transparent", text_color=("gray10", "gray90"),
                                               hover_color=("gray70", "gray30"),
-                                              image=self.chat_image, anchor="w",
+                                              image=self.extarct_image, anchor="w",
                                               command=self.frame_extract_button_event)
         self.frame_extract_button.grid(row=2, column=0, sticky="ew")
+
+        # extract button frame config
+        self.frame_lock_button = CTkButton(self.navigation_frame, corner_radius=0, height=40,
+                                           border_spacing=10, text="Lock",
+                                           fg_color="transparent", text_color=("gray10", "gray90"),
+                                           hover_color=("gray70", "gray30"),
+                                           image=self.lock_image, anchor="w",
+                                           command=self.frame_lock_button_event)
+        self.frame_lock_button.grid(row=3, column=0, sticky="ew")
 
         # configuring appearance
         self.appearance_mode_menu = CTkOptionMenu(self.navigation_frame,
@@ -81,19 +92,19 @@ class App(customtkinter.CTk):
         self.output_merge.grid(row=3, column=0, padx=20, pady=(10, 0))
 
         self.button_select = CTkButton(self.merge_frame, text="Select files",
-                                       image=self.image_icon_image, corner_radius=10,
+                                       image=self.select_image, corner_radius=10,
                                        compound="left", command=self.upload_handler)
         self.button_select.grid(row=4, column=0, padx=20, pady=5)
         self.button_merge = CTkButton(self.merge_frame, text="Merge files",
-                                      image=self.image_icon_image, corner_radius=10,
+                                      image=self.merge_button_image, corner_radius=10,
                                       compound="left", state=DISABLED, command=self.merge_handler)
         self.button_merge.grid(row=5, column=0, padx=20, pady=5)
         self.button_delete_merge = CTkButton(self.merge_frame, text="Delete",
-                                             image=self.image_icon_image, corner_radius=10,
+                                             image=self.delete_image, corner_radius=10,
                                              compound="left", state=DISABLED, command=self.delete_handler)
         self.button_delete_merge.grid(row=6, column=0, padx=20, pady=5)
         self.button_delete_all = CTkButton(self.merge_frame, text="Delete all",
-                                           image=self.image_icon_image, corner_radius=10,
+                                           image=self.delete_image, corner_radius=10,
                                            compound="left", state=DISABLED, command=self.delete_all_handler)
         self.button_delete_all.grid(row=7, column=0, padx=20, pady=5)
 
@@ -105,7 +116,8 @@ class App(customtkinter.CTk):
         self.extract_title = CTkLabel(master=self.extract_frame, font=("Helvetica", 16),
                                       text="Choose the pdf file you want to extract page(s) from")
         self.extract_title.grid(row=0, column=0, columnspan=4, padx=20, pady=15)
-        self.button_add_extract = CTkButton(self.extract_frame, text="select file", command=self.upload_handler)
+        self.button_add_extract = CTkButton(self.extract_frame, text="select file", image=self.select_image,
+                                            command=self.upload_handler)
         self.button_add_extract.grid(row=1, column=0, columnspan=2, padx=30)
         self.file = CTkLabel(self.extract_frame, text="", font=("Arial", 13))
         self.file.grid(row=1, column=2, columnspan=2, padx=30, pady=10)
@@ -134,15 +146,25 @@ class App(customtkinter.CTk):
         self.label.grid(row=4, column=0, columnspan=2, pady=(10, 10))
         self.output_extract = CTkEntry(self.extract_frame, justify=CENTER, state=DISABLED)
         self.output_extract.grid(row=4, column=2, columnspan=2, pady=(10, 10))
-        self.button_extract = CTkButton(self.extract_frame, text="extract", command=self.extract_handler,
+        self.button_extract = CTkButton(self.extract_frame, text="extract", image=self.extract_button_image,
+                                        command=self.extract_handler,
                                         state=DISABLED)
         self.button_extract.grid(row=5, column=2, columnspan=2, )
-        self.button_delete_extract = CTkButton(self.extract_frame, text="delete", command=self.delete_handler,
+        self.button_delete_extract = CTkButton(self.extract_frame, text="delete", image=self.delete_image,
+                                               command=self.delete_handler,
                                                state=DISABLED)
         self.button_delete_extract.grid(row=6, column=2, columnspan=2, pady=(10, 10))
 
+        # create lock Frame
+        self.lock_frame = CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.lock_frame.grid_columnconfigure(0, weight=1)
+        # extract lock Frame gadgets
+        self.extract_title = CTkLabel(master=self.lock_frame, font=("Helvetica", 16),
+                                      text="Choose the pdf file to lock with password")
+        self.extract_title.grid(row=0, column=0, columnspan=2, padx=20, pady=15)
+
         # select default frame
-        self.select_frame_by_name("merge")
+        self.select_frame_by_name("lock")
 
     @staticmethod
     def only_numbers(char):
@@ -319,6 +341,7 @@ class App(customtkinter.CTk):
         # set button color for selected button
         self.frame_merge_button.configure(fg_color=("gray75", "gray25") if name == "merge" else "transparent")
         self.frame_extract_button.configure(fg_color=("gray75", "gray25") if name == "extract" else "transparent")
+        self.frame_lock_button.configure(fg_color=("gray75", "gray25") if name == "lock" else "transparent")
 
         # show selected frame
         if name == "merge":
@@ -331,12 +354,20 @@ class App(customtkinter.CTk):
             self.frame = 2
         else:
             self.extract_frame.grid_forget()
+        if name == "lock":
+            self.lock_frame.grid(row=0, column=1, sticky="nsew")
+            self.frame = 3
+        else:
+            self.lock_frame.grid_forget()
 
     def frame_merge_button_event(self):
         self.select_frame_by_name("merge")
 
     def frame_extract_button_event(self):
         self.select_frame_by_name("extract")
+
+    def frame_lock_button_event(self):
+        self.select_frame_by_name("lock")
 
     def change_appearance_mode_event(self, new_appearance_mode):
         customtkinter.set_appearance_mode(new_appearance_mode)
