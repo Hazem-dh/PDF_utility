@@ -1,5 +1,6 @@
 from pikepdf import Pdf, Encryption
 import os
+import ntpath
 
 
 def merge_pdfs(pdf_paths, folder, output_file_name):
@@ -30,7 +31,7 @@ def lock_pdf(pdf_path, password, folder):
     new_pdf = Pdf.new()
     for page in pdf_file.pages:
         new_pdf.pages.append(page)
-    new_pdf.save(os.path.join(folder, pdf_path.split("/")[-1]),
+    new_pdf.save(os.path.join(folder, ntpath.basename(pdf_path)),
                  encryption=Encryption(user=password, owner=password, R=4))
 
 

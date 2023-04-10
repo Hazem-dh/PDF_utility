@@ -5,6 +5,7 @@ from customtkinter import CTkLabel, CTkButton, CTkEntry, CTkRadioButton, CTkFram
 from tkinter import Listbox, messagebox, IntVar, NORMAL, DISABLED, END, CENTER
 import tkinter.filedialog as fd
 from utils import merge_pdfs, get_num_pages, extract_pages_from_pdf, extract_page_from_pdf, lock_pdf
+import ntpath
 
 
 class App(customtkinter.CTk):
@@ -229,17 +230,17 @@ class App(customtkinter.CTk):
             return
         for file in filenames:
             if self.frame == 1:
-                self.listbox.insert(END, file.split("/")[-1])
+                self.listbox.insert(END, ntpath.basename(file))
                 self.paths.append(file)
             elif self.frame == 2:
-                self.file_extract.configure(text=file.split("/")[-1])
+                self.file_extract.configure(text=ntpath.basename(file))
                 self.path_extract = file
                 if self.button_remove_extract.cget("state") == DISABLED:
                     self.switch(self.button_remove_extract)
                     self.switch(self.button_extract)
                     self.switch(self.output_extract)
             else:
-                self.file_lock.configure(text=file.split("/")[-1])
+                self.file_lock.configure(text=ntpath.basename(file))
                 self.path_lock = file
                 if self.button_remove_lock.cget("state") == DISABLED:
                     self.switch(self.button_remove_lock)
